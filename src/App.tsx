@@ -10,7 +10,7 @@ type Link = {
   externalUrl?: string
   internalPage?: {_ref?: string}
 }
-type Cta = {label?: string; link?: Link}
+type Cta = {label?: string; link?: Link; variant?: string}
 type Stat = {value?: string; label?: string}
 type ImageAsset = {asset?: {url?: string}}
 type HeroSection = {
@@ -180,21 +180,35 @@ const SANITY_QUERY = `{
   "navigation": *[_id == "navigation"][0]{headerPrimary,headerFeaturedLinks,footerColumns,footerBottomLinks},
   "homePage": *[_id == "homePage"][0]{
     title,
-    hero{...,backgroundImage{asset->{url}}},
+    hero{headline,subheadline,eyebrow,backgroundImage{asset->{url}},ctaPrimary{label,link,variant},ctaSecondary{label,link,variant},stats{value,label}},
     pageBuilder[]{
-      ...,
+      _type,
+      heading,
+      subheading,
+      content,
+      cta{label,link,variant},
+      image{asset->{url}},
+      imagePosition,
+      items{title,body,icon},
+      quote,
+      name,
+      role,
+      question,
+      answer,
       _type == "featuredCollectionSection" => {
-        ...,
-        collections[]->{_id,title,slug,intro,cardImageUrl,hero{...,backgroundImage{asset->{url}}}}
+        collections[]->{_id,title,slug,intro,cardImageUrl,hero{headline,subheadline,eyebrow,backgroundImage{asset->{url}},ctaPrimary{label,link,variant}}}
+      },
+      _type == "featuredProductsSection" => {
+        products[]->{_id,title,slug,badgeText,cardImageUrl,hero{headline,subheadline,eyebrow,backgroundImage{asset->{url}}}}
       }
     }
   },
-  "pages": *[_type == "page"]|order(title asc){_id,title,slug,eyebrow,hero{...,backgroundImage{asset->{url}}}},
-  "collections": *[_type == "collectionPage"]|order(title asc){_id,title,slug,intro,cardImageUrl,hero{...,backgroundImage{asset->{url}}}},
-  "products": *[_type == "productPage"]|order(title asc)[0..99]{_id,title,slug,badgeText,featureHighlights,longDescription,cardImageUrl,hero{...,backgroundImage{asset->{url}}}}
+  "pages": *[_type == "page"]|order(title asc){_id,title,slug,eyebrow,hero{headline,subheadline,eyebrow,backgroundImage{asset->{url}},ctaPrimary{label,link,variant},ctaSecondary{label,link,variant}}},
+  "collections": *[_type == "collectionPage"]|order(title asc){_id,title,slug,intro,cardImageUrl,hero{headline,subheadline,eyebrow,backgroundImage{asset->{url}},ctaPrimary{label,link,variant}}},
+  "products": *[_type == "productPage"]|order(title asc)[0..99]{_id,title,slug,badgeText,featureHighlights{title,description},longDescription,cardImageUrl,hero{headline,subheadline,eyebrow,backgroundImage{asset->{url}},ctaPrimary{label,link,variant}}}
 }`
 
-const SANITY_URL = `/api/sanity/v2025-08-15/data/query/production?query=${encodeURIComponent(SANITY_QUERY)}`
+const SANITY_URL = `/api/sanity/v2025-08-15/data/query/production`
 const VENDURE_ENDPOINT = '/api/vendure'
 const PLACEHOLDER_IMAGE = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200"><rect width="1200" height="1200" fill="%23f1f1f1"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="Arial, sans-serif" font-size="56">Fire DFND</text></svg>'
 
@@ -527,7 +541,11 @@ function getRoute(pathname: string): Route {
 }
 
 async function fetchSanity() {
-  const response = await fetch(SANITY_URL)
+  const response = await fetch(SANITY_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({query: SANITY_QUERY}),
+  })
   if (!response.ok) throw new Error(`Sanity request failed: ${response.status}`)
   const json = await response.json()
   return json.result as ContentModel

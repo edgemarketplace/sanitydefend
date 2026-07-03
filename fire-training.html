@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defend Freedom | Fire Training Demo</title>
+    <meta
+      name="description"
+      content="Immersive fire training demo with deployed scenario video and room for a growing training library."
+    />
+  </head>
+  <body>
+    <div id="app">
+      <main class="training-page">
+        <section class="training-copy">
+          <p class="eyebrow">Immersive Fire Training</p>
+          <h1>Scenario video deployment demo</h1>
+          <p>
+            This page deploys one fire training scenario as the first step toward a larger 350-asset
+            training library.
+          </p>
+          <div class="training-card">
+            <h2>Scenario</h2>
+            <p id="scenario-title">Loading scenario…</p>
+            <ul class="feature-list">
+              <li>Hosted MP4 playback from the Vercel app</li>
+              <li>Space for image + video scenario metadata</li>
+              <li>Expandable library pattern for future immersive drills</li>
+            </ul>
+          </div>
+          <div class="training-card">
+            <h2>Next buildout for 350 assets</h2>
+            <ol class="feature-list ordered-list">
+              <li>Store media in object storage/CDN instead of Git</li>
+              <li>Keep scenario metadata in Sanity or a JSON manifest</li>
+              <li>Add tags like room, ignition source, smoke level, and response objective</li>
+            </ol>
+          </div>
+        </section>
+        <section class="training-stage">
+          <video id="training-video" controls playsinline preload="metadata"></video>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/fire-training.ts"></script>
+  </body>
+</html>

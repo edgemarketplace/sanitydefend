@@ -8,6 +8,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        fireTraining: resolve(__dirname, 'fire-training.html'),
         panorama: resolve(__dirname, 'panorama.html'),
       },
     },

@@ -1,143 +1,193 @@
 import 'aframe'
 import './immersive-training.css'
 
+const sceneOrder = ['bravo', 'doorway', 'interior']
+const sceneIndex = Object.fromEntries(sceneOrder.map((sceneId, index) => [sceneId, index]))
+const strategyCopy = {
+  offensive:
+    'Offensive selected. Push to confine the garage fire early, but keep door control and interior tenability in view at every step.',
+  defensive:
+    'Defensive selected. Slow the tempo, read extension risk, and protect egress before committing farther inside.',
+}
 const scenes = {
-  alpha: {
-    id: 'alpha',
-    name: 'Alpha Side Size-Up',
-    sky: '#alpha-side-panorama',
-    skyRotation: '0 -78 0',
+  bravo: {
+    id: 'bravo',
+    name: 'BRAVO side size-up',
+    sky: '#bravo-panorama',
+    skyRotation: '0 -92 0',
     summary:
-      'Start outside on the alpha side. Read smoke volume, note fire location, and decide whether conditions justify immediate entry or a wider 360.',
-    question: 'On arrival, what should anchor your first tactical decision?',
+      'Start on the Bravo side. Read smoke showing from the structure and decide how conditions on this flank affect your first move.',
+    question: 'From the Bravo side, what should drive your first tactical move?',
     choices: [
       {
-        label: 'Complete a fast exterior size-up while confirming fire location and occupant profile.',
+        label: 'Read extension, identify flow-path risk, and communicate how Bravo conditions shape the next advance.',
         feedback:
-          'Strong choice. The scene is about reading conditions before committing crews into an unknown flow path.',
+          'Strong. Bravo is giving you information about extension and potential air-track problems before the front-door push.',
       },
       {
-        label: 'Force the nearest opening immediately before confirming where the main body of fire is.',
+        label: 'Commit everyone straight to entry without using Bravo conditions to update the plan.',
         feedback:
-          'Too aggressive for the information available. The trainer should reward reading smoke, layout, and likely victim area first.',
-      },
-      {
-        label: 'Vent high immediately from the exterior before the attack line is in place.',
-        feedback:
-          'Not yet. Vent timing should support the coordinated interior plan, not outpace it.',
+          'Too narrow. The whole point of the Bravo stop is to improve the plan before crews stack on the doorway.',
       },
     ],
     hotspots: [
       {
-        id: 'alpha-to-front',
-        label: 'Move to front door',
-        position: '2.4 0.2 -3.8',
-        target: 'frontDoor',
+        id: 'bravo-observe',
+        label: 'Observe smoke conditions',
+        position: '-2.8 0.35 -3.7',
+        message:
+          'Watch the smoke volume and pressure off the Bravo side. This is your last exterior chance to refine the plan before the doorway.',
       },
       {
-        id: 'alpha-focus-fire',
-        label: 'Focus on fire room',
-        position: '-2.6 0.55 -3.5',
-        onClick: () => setFeedback('Scan the exterior opening, smoke pressure, and any extension indicators before advancing crews.'),
+        id: 'bravo-to-doorway',
+        label: 'Advance to doorway',
+        position: '2.6 0.18 -3.8',
+        target: 'doorway',
       },
     ],
   },
-  frontDoor: {
-    id: 'frontDoor',
-    name: 'Front Door Threshold',
-    sky: '#front-door-panorama',
-    skyRotation: '0 -100 0',
+  doorway: {
+    id: 'doorway',
+    name: 'Doorway control',
+    sky: '#doorway-panorama',
+    skyRotation: '0 -102 0',
     summary:
-      'You are now at the threshold. Evaluate door control, visibility, and how opening this path could influence interior conditions.',
-    question: 'At the front door, what is the best immediate priority?',
+      'You are at the doorway. Control the opening, read the threshold, and decide how your declared strategy changes the pace of entry.',
+    question: 'At the doorway, what is the highest-value action right now?',
     choices: [
       {
-        label: 'Control the door, cool if needed, and coordinate entry with the charged line.',
+        label: 'Control the door, coordinate the line, and manage the opening so conditions do not worsen before the push.',
         feedback:
-          'Exactly. Threshold discipline is a major decision point in preventing air track from worsening interior tenability.',
+          'Exactly. The doorway is a control point, not just a portal. Your strategy still has to respect flow path and coordination.',
       },
       {
-        label: 'Leave the entry fully open to improve visibility before the line is ready.',
+        label: 'Leave the opening uncontrolled because speed matters more than threshold discipline.',
         feedback:
-          'Risky. An uncontrolled opening can rapidly intensify interior conditions.',
-      },
-      {
-        label: 'Send crews interior without a clear communication plan on search vs. fire attack.',
-        feedback:
-          'That loses tactical clarity. Entry decisions should align assignment, line placement, and victim priorities.',
+          'Poor threshold management. A rushed opening can make the interior worse before crews gain control.',
       },
     ],
     hotspots: [
       {
-        id: 'front-to-alpha',
-        label: 'Back to alpha side',
-        position: '-3.8 0.15 -2.6',
-        target: 'alpha',
+        id: 'doorway-hold',
+        label: 'Check threshold conditions',
+        position: '-2.2 0.15 -3.9',
+        message:
+          'Read visibility, heat, and how quickly the opening is changing the interior. This is where your declared strategy becomes real.',
       },
       {
-        id: 'front-to-entry',
-        label: 'Advance inside',
-        position: '1.2 0.05 -4.1',
-        target: 'entry',
+        id: 'doorway-to-interior',
+        label: 'Advance interior',
+        position: '1.5 0.06 -4.2',
+        target: 'interior',
       },
     ],
   },
-  entry: {
-    id: 'entry',
-    name: 'Interior Entry Conditions',
-    sky: '#entry-panorama',
-    skyRotation: '0 -86 0',
+  interior: {
+    id: 'interior',
+    name: 'Interior decision point',
+    sky: '#interior-panorama',
+    skyRotation: '0 -88 0',
     summary:
-      'Inside the structure, pay attention to visibility, heat, and the likely route to the seat of the fire. This is where decision-making pressure increases fast.',
-    question: 'Once interior conditions begin to tighten, what should guide the next move?',
+      'Inside the structure, maintain orientation, tenability awareness, and a clear objective. This is where commitment pressure peaks.',
+    question: 'Once inside, what should govern the next decision?',
     choices: [
       {
-        label: 'Reassess tenability, maintain orientation, and decide whether the current path still supports the objective.',
+        label: 'Keep re-evaluating heat, visibility, orientation, and whether the path still supports rescue or confinement goals.',
         feedback:
-          'Yes. Interior immersion is about constant re-evaluation, not blind momentum.',
+          'Correct. Interior progress should stay tied to conditions, not momentum for its own sake.',
       },
       {
-        label: 'Continue deeper solely because crews already committed through the door.',
+        label: 'Continue deeper automatically because crews have already crossed the threshold.',
         feedback:
-          'That is the trap. Commitment should not override changing interior conditions.',
-      },
-      {
-        label: 'Split crews immediately without a shared reference point or hose-line orientation.',
-        feedback:
-          'Poor interior discipline. In a real trainer we can score this as increased disorientation risk.',
+          'That is the trap. Interior commitment never overrides changing conditions and survivability.',
       },
     ],
     hotspots: [
       {
-        id: 'entry-to-front',
-        label: 'Retreat to threshold',
-        position: '-1.4 0.1 4.3',
-        target: 'frontDoor',
-      },
-      {
-        id: 'entry-hold-point',
+        id: 'interior-hold',
         label: 'Hold and reassess',
-        position: '2.7 0.4 -3.6',
-        onClick: () => setFeedback('Good pause point. In the scored version this hotspot can trigger a mini-debrief or telemetry event.'),
+        position: '2.5 0.3 -3.6',
+        message:
+          'Use this pause to decide whether your offensive or defensive posture still matches what the interior is telling you.',
+      },
+      {
+        id: 'interior-reset',
+        label: 'Restart scenario',
+        position: '-1.8 0.12 4.1',
+        action: 'reset',
       },
     ],
   },
 }
 
-const sky = document.querySelector('#training-sky')
-const hotspotLayer = document.querySelector('#hotspot-layer')
-const sceneButtons = document.querySelector('#scene-buttons')
+const app = document.querySelector('#app')
+const welcomeOverlay = document.querySelector('#welcome-overlay')
+const startButton = document.querySelector('#start-button')
+const phaseTitle = document.querySelector('#phase-title')
+const phaseCopy = document.querySelector('#phase-copy')
+const primaryActions = document.querySelector('#primary-actions')
+const briefingCard = document.querySelector('#briefing-card')
+const briefingInstruction = document.querySelector('#briefing-instruction')
+const briefingVideo = document.querySelector('#briefing-video')
+const strategyCard = document.querySelector('#strategy-card')
+const strategyOptions = document.querySelector('#strategy-options')
+const strategyFeedback = document.querySelector('#strategy-feedback')
+const sceneCard = document.querySelector('#scene-card')
+const sceneTitle = document.querySelector('#scene-title')
 const sceneSummary = document.querySelector('#scene-summary')
+const sceneButtons = document.querySelector('#scene-buttons')
+const checkpointCard = document.querySelector('#checkpoint-card')
 const decisionQuestion = document.querySelector('#decision-question')
 const decisionOptions = document.querySelector('#decision-options')
 const decisionFeedback = document.querySelector('#decision-feedback')
+const timeline = document.querySelector('#timeline')
+const sky = document.querySelector('#training-sky')
+const hotspotLayer = document.querySelector('#hotspot-layer')
 const sceneEl = document.querySelector('a-scene')
 
-if (!sky || !hotspotLayer || !sceneButtons || !sceneSummary || !decisionQuestion || !decisionOptions || !decisionFeedback || !sceneEl) {
+if (
+  !app ||
+  !welcomeOverlay ||
+  !startButton ||
+  !phaseTitle ||
+  !phaseCopy ||
+  !primaryActions ||
+  !briefingCard ||
+  !briefingInstruction ||
+  !briefingVideo ||
+  !strategyCard ||
+  !strategyOptions ||
+  !strategyFeedback ||
+  !sceneCard ||
+  !sceneTitle ||
+  !sceneSummary ||
+  !sceneButtons ||
+  !checkpointCard ||
+  !decisionQuestion ||
+  !decisionOptions ||
+  !decisionFeedback ||
+  !timeline ||
+  !sky ||
+  !hotspotLayer ||
+  !sceneEl
+) {
   throw new Error('Immersive training page failed to initialize')
 }
 
-let currentSceneId = 'alpha'
+const state = {
+  phase: 'welcome',
+  strategy: '',
+  currentSceneId: 'bravo',
+  furthestSceneIndex: 0,
+}
+
+function setDecisionFeedback(message) {
+  decisionFeedback.textContent = message
+}
+
+function setStrategyFeedback(message) {
+  strategyFeedback.textContent = message
+}
 
 function syncSceneViewport() {
   const targetHeight = window.innerWidth <= 1080 ? Math.max(window.innerHeight * 0.68, 420) : Math.max(window.innerHeight - 72, 640)
@@ -150,8 +200,61 @@ function syncSceneViewport() {
   }
 }
 
-function setFeedback(message) {
-  decisionFeedback.textContent = message
+function updateTimeline() {
+  const phaseRank = {welcome: 0, briefing: 1, strategy: 2, scene: 3}
+  const currentRank = phaseRank[state.phase]
+
+  timeline.querySelectorAll('li').forEach((item) => {
+    const itemRank = phaseRank[item.dataset.step]
+    item.classList.toggle('is-active', itemRank === currentRank)
+    item.classList.toggle('is-complete', itemRank < currentRank)
+  })
+}
+
+function setPhase(phase) {
+  state.phase = phase
+  app.dataset.phase = phase
+  welcomeOverlay.hidden = phase !== 'welcome'
+  strategyCard.hidden = !['strategy', 'scene'].includes(phase)
+  sceneCard.hidden = phase !== 'scene'
+  checkpointCard.hidden = phase !== 'scene'
+  updateTimeline()
+  renderPrimaryActions()
+  renderSceneButtons()
+  renderHotspots()
+}
+
+function getScene(sceneId = state.currentSceneId) {
+  return scenes[sceneId]
+}
+
+function goToScene(sceneId) {
+  const targetIndex = sceneIndex[sceneId]
+  if (targetIndex > state.furthestSceneIndex) return
+
+  state.currentSceneId = sceneId
+  state.furthestSceneIndex = Math.max(state.furthestSceneIndex, targetIndex)
+  renderScene()
+}
+
+function handleHotspot(hotspot) {
+  if (hotspot.target) {
+    const targetIndex = sceneIndex[hotspot.target]
+    if (targetIndex === sceneIndex[state.currentSceneId] + 1) {
+      state.furthestSceneIndex = Math.max(state.furthestSceneIndex, targetIndex)
+    }
+    goToScene(hotspot.target)
+    return
+  }
+
+  if (hotspot.action === 'reset') {
+    resetScenario()
+    return
+  }
+
+  if (hotspot.message) {
+    setDecisionFeedback(hotspot.message)
+  }
 }
 
 function createHotspot(hotspot) {
@@ -166,21 +269,22 @@ function createHotspot(hotspot) {
   label.setAttribute('value', hotspot.label)
   label.setAttribute('align', 'center')
   label.setAttribute('color', '#ffffff')
-  label.setAttribute('width', '2.8')
+  label.setAttribute('width', '3')
   label.setAttribute('position', '0 0.34 0')
   label.setAttribute('look-at', '[camera]')
   entity.appendChild(label)
 
-  entity.addEventListener('click', () => {
-    if (hotspot.target) {
-      renderScene(hotspot.target)
-    }
-    if (hotspot.onClick) {
-      hotspot.onClick()
-    }
-  })
-
+  entity.addEventListener('click', () => handleHotspot(hotspot))
   return entity
+}
+
+function renderHotspots() {
+  hotspotLayer.replaceChildren()
+  if (state.phase !== 'scene') return
+
+  getScene().hotspots.forEach((hotspot) => {
+    hotspotLayer.appendChild(createHotspot(hotspot))
+  })
 }
 
 function renderDecisionChoices(scene) {
@@ -191,42 +295,140 @@ function renderDecisionChoices(scene) {
     button.type = 'button'
     button.className = 'choice-button'
     button.textContent = choice.label
-    button.addEventListener('click', () => setFeedback(choice.feedback))
+    button.addEventListener('click', () => setDecisionFeedback(choice.feedback))
     decisionOptions.appendChild(button)
   })
 }
 
 function renderSceneButtons() {
   sceneButtons.replaceChildren()
+  if (state.phase !== 'scene') return
 
-  Object.values(scenes).forEach((scene) => {
+  sceneOrder.forEach((sceneId) => {
+    const scene = scenes[sceneId]
     const button = document.createElement('button')
     button.type = 'button'
-    button.className = `scene-button${scene.id === currentSceneId ? ' is-active' : ''}`
+    button.className = `scene-button${sceneId === state.currentSceneId ? ' is-active' : ''}`
+    button.disabled = sceneIndex[sceneId] > state.furthestSceneIndex
     button.textContent = scene.name
-    button.addEventListener('click', () => renderScene(scene.id))
+    button.addEventListener('click', () => goToScene(sceneId))
     sceneButtons.appendChild(button)
   })
 }
 
-function renderScene(sceneId) {
-  const scene = scenes[sceneId]
-  currentSceneId = sceneId
+function renderScene() {
+  const scene = getScene()
 
   sky.setAttribute('src', scene.sky)
   sky.setAttribute('rotation', scene.skyRotation)
+  sceneTitle.textContent = scene.name
   sceneSummary.textContent = scene.summary
   decisionQuestion.textContent = scene.question
-  setFeedback('Choose an option or click a hotspot inside the scene to continue the exercise.')
+  setDecisionFeedback('Choose a decision response or use the orange hotspots inside the panorama to keep moving.')
   renderDecisionChoices(scene)
   renderSceneButtons()
+  renderHotspots()
+}
 
-  hotspotLayer.replaceChildren()
-  scene.hotspots.forEach((hotspot) => {
-    hotspotLayer.appendChild(createHotspot(hotspot))
+function renderPrimaryActions() {
+  primaryActions.replaceChildren()
+
+  if (state.phase === 'welcome') {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'button button-primary'
+    button.textContent = 'Start scenario'
+    button.addEventListener('click', startScenario)
+    primaryActions.appendChild(button)
+    phaseTitle.textContent = 'Welcome screen'
+    phaseCopy.textContent = 'Start the run, watch the garage-fire briefing, then commit to offensive or defensive strategy before entry.'
+    return
+  }
+
+  if (state.phase === 'briefing') {
+    phaseTitle.textContent = 'Watch the briefing'
+    phaseCopy.textContent = 'The 360 scene is live behind the controls. Finish the initial garage-fire video to unlock the strategy decision.'
+    return
+  }
+
+  if (state.phase === 'strategy') {
+    phaseTitle.textContent = 'Declare your strategy'
+    phaseCopy.textContent = 'Choose offensive or defensive posture. That locks in the tone of the Bravo-to-interior run.'
+    return
+  }
+
+  phaseTitle.textContent = 'Move the scenario'
+  phaseCopy.textContent = `${state.strategy ? `${state.strategy[0].toUpperCase()}${state.strategy.slice(1)} strategy declared.` : 'Strategy pending.'} Use hotspots or scene buttons to move Bravo → doorway → interior.`
+
+  const resetButton = document.createElement('button')
+  resetButton.type = 'button'
+  resetButton.className = 'button'
+  resetButton.textContent = 'Restart scenario'
+  resetButton.addEventListener('click', resetScenario)
+  primaryActions.appendChild(resetButton)
+}
+
+function renderStrategyOptions() {
+  strategyOptions.replaceChildren()
+
+  ;['offensive', 'defensive'].forEach((strategy) => {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'choice-button'
+    button.textContent = strategy === 'offensive' ? 'Offensive' : 'Defensive'
+    button.addEventListener('click', () => {
+      state.strategy = strategy
+      state.furthestSceneIndex = 0
+      setStrategyFeedback(strategyCopy[strategy])
+      setPhase('scene')
+      goToScene('bravo')
+    })
+    strategyOptions.appendChild(button)
   })
 }
 
-renderScene(currentSceneId)
+function startScenario() {
+  state.currentSceneId = 'bravo'
+  renderScene()
+  setPhase('briefing')
+  briefingInstruction.textContent = 'Watch the initial garage-fire brief. Strategy selection unlocks automatically when the clip ends.'
+  setStrategyFeedback('Awaiting video completion…')
+  briefingVideo.currentTime = 0
+  const playAttempt = briefingVideo.play()
+  if (playAttempt?.catch) {
+    playAttempt.catch(() => {
+      briefingInstruction.textContent = 'Press play on the garage-fire brief. When it finishes, the strategy gate will unlock.'
+    })
+  }
+}
+
+function handleBriefingComplete() {
+  if (state.phase !== 'briefing') return
+  setPhase('strategy')
+  briefingInstruction.textContent = 'Briefing complete. Declare offensive or defensive strategy to enter the Bravo-side scenario.'
+  setStrategyFeedback('Choose a strategy to enter BRAVO.')
+}
+
+function resetScenario() {
+  state.phase = 'welcome'
+  state.strategy = ''
+  state.currentSceneId = 'bravo'
+  state.furthestSceneIndex = 0
+  briefingVideo.pause()
+  briefingVideo.currentTime = 0
+  setStrategyFeedback('Awaiting video completion…')
+  setDecisionFeedback('Choose a decision response or use the orange hotspots inside the panorama to keep moving.')
+  renderScene()
+  setPhase('welcome')
+}
+
+renderStrategyOptions()
+renderScene()
+setStrategyFeedback('Awaiting video completion…')
+setDecisionFeedback('Choose a decision response or use the orange hotspots inside the panorama to keep moving.')
+setPhase('welcome')
 syncSceneViewport()
+
+startButton.addEventListener('click', startScenario)
+briefingVideo.addEventListener('ended', handleBriefingComplete)
 window.addEventListener('resize', syncSceneViewport)

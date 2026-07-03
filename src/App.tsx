@@ -644,6 +644,8 @@ export default function App() {
   })
 
   const route = getRoute(path)
+  const routeType = route.type
+  const routeSlug = 'slug' in route ? route.slug : ''
 
   const sanityCollectionsBySlug = useMemo(
     () => new Map((content?.collections ?? []).map((collection) => [collection.slug?.current ?? '', collection])),
@@ -655,6 +657,39 @@ export default function App() {
   )
   const vendureCollectionsBySlug = useMemo(() => new Map(vendureCollections.map((collection) => [collection.slug, collection])), [vendureCollections])
   const vendureProductsBySlug = useMemo(() => new Map(vendureProducts.map((product) => [product.slug, product])), [vendureProducts])
+  const checkoutDefaults = useMemo<CheckoutForm>(() => {
+    const customer = activeOrder?.customer
+    const shipping = activeOrder?.shippingAddress
+    const fullName = shipping?.fullName || `${customer?.firstName ?? ''} ${customer?.lastName ?? ''}`.trim()
+
+    return {
+      firstName: customer?.firstName || '',
+      lastName: customer?.lastName || '',
+      emailAddress: customer?.emailAddress || '',
+      phoneNumber: shipping?.phoneNumber || '',
+      fullName,
+      streetLine1: shipping?.streetLine1 || '',
+      city: shipping?.city || '',
+      province: shipping?.province || 'NV',
+      postalCode: shipping?.postalCode || '',
+      countryCode: shipping?.countryCode || countries[0]?.code || '',
+    }
+  }, [activeOrder, countries])
+  const checkoutValues = useMemo<CheckoutForm>(
+    () => ({
+      firstName: checkoutForm.firstName || checkoutDefaults.firstName,
+      lastName: checkoutForm.lastName || checkoutDefaults.lastName,
+      emailAddress: checkoutForm.emailAddress || checkoutDefaults.emailAddress,
+      phoneNumber: checkoutForm.phoneNumber || checkoutDefaults.phoneNumber,
+      fullName: checkoutForm.fullName || checkoutDefaults.fullName,
+      streetLine1: checkoutForm.streetLine1 || checkoutDefaults.streetLine1,
+      city: checkoutForm.city || checkoutDefaults.city,
+      province: checkoutForm.province || checkoutDefaults.province,
+      postalCode: checkoutForm.postalCode || checkoutDefaults.postalCode,
+      countryCode: checkoutForm.countryCode || checkoutDefaults.countryCode,
+    }),
+    [checkoutDefaults, checkoutForm],
+  )
 
   function navigate(to: string) {
     if (to === path) return
@@ -759,31 +794,6 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (!countries.length) return
-    setCheckoutForm((current) => ({
-      ...current,
-      countryCode: current.countryCode || countries[0].code,
-    }))
-  }, [countries])
-
-  useEffect(() => {
-    if (!activeOrder?.customer && !activeOrder?.shippingAddress) return
-    setCheckoutForm((current) => ({
-      ...current,
-      firstName: current.firstName || activeOrder.customer?.firstName || '',
-      lastName: current.lastName || activeOrder.customer?.lastName || '',
-      emailAddress: current.emailAddress || activeOrder.customer?.emailAddress || '',
-      phoneNumber: current.phoneNumber || activeOrder.shippingAddress?.phoneNumber || '',
-      fullName: current.fullName || activeOrder.shippingAddress?.fullName || `${activeOrder.customer?.firstName ?? ''} ${activeOrder.customer?.lastName ?? ''}`.trim(),
-      streetLine1: current.streetLine1 || activeOrder.shippingAddress?.streetLine1 || '',
-      city: current.city || activeOrder.shippingAddress?.city || '',
-      province: current.province || activeOrder.shippingAddress?.province || '',
-      postalCode: current.postalCode || activeOrder.shippingAddress?.postalCode || '',
-      countryCode: current.countryCode || activeOrder.shippingAddress?.countryCode || current.countryCode,
-    }))
-  }, [activeOrder])
-
-  useEffect(() => {
     async function loadRouteData() {
       try {
         setRouteLoading(true)
@@ -791,16 +801,16 @@ export default function App() {
         setCollectionDetail(null)
         setCollectionProducts([])
 
-        if (route.type === 'product') {
-          const data = await vendureFetch<{product: VendureProductDetail | null}>(PRODUCT_QUERY, {slug: route.slug})
+        if (routeType === 'product') {
+          const data = await vendureFetch<{product: VendureProductDetail | null}>(PRODUCT_QUERY, {slug: routeSlug})
           setProductDetail(data.product)
           setSelectedVariantId(data.product?.variants?.[0]?.id ?? '')
         }
 
-        if (route.type === 'collection') {
+        if (routeType === 'collection') {
           const [collectionData, productData] = await Promise.all([
-            vendureFetch<{collection: VendureCollection | null}>(COLLECTION_QUERY, {slug: route.slug}),
-            vendureFetch<{search: {items: VendureSearchProduct[]}}>(COLLECTION_PRODUCTS_QUERY, {slug: route.slug}),
+            vendureFetch<{collection: VendureCollection | null}>(COLLECTION_QUERY, {slug: routeSlug}),
+            vendureFetch<{search: {items: VendureSearchProduct[]}}>(COLLECTION_PRODUCTS_QUERY, {slug: routeSlug}),
           ])
           setCollectionDetail(collectionData.collection)
           setCollectionProducts(productData.search.items)
@@ -813,7 +823,7 @@ export default function App() {
     }
 
     void loadRouteData()
-  }, [route.type, route.type === 'product' ? route.slug : '', route.type === 'collection' ? route.slug : ''])
+  }, [routeSlug, routeType])
 
   useEffect(() => {
     async function loadCheckoutMethods() {
@@ -890,20 +900,20 @@ export default function App() {
       setCompletedOrderCode(null)
 
       const customerInput = {
-        firstName: checkoutForm.firstName,
-        lastName: checkoutForm.lastName,
-        emailAddress: checkoutForm.emailAddress,
-        phoneNumber: checkoutForm.phoneNumber || undefined,
+        firstName: checkoutValues.firstName,
+        lastName: checkoutValues.lastName,
+        emailAddress: checkoutValues.emailAddress,
+        phoneNumber: checkoutValues.phoneNumber || undefined,
       }
 
       const addressInput: AddressInput = {
-        fullName: checkoutForm.fullName,
-        streetLine1: checkoutForm.streetLine1,
-        city: checkoutForm.city,
-        province: checkoutForm.province,
-        postalCode: checkoutForm.postalCode,
-        countryCode: checkoutForm.countryCode,
-        phoneNumber: checkoutForm.phoneNumber || undefined,
+        fullName: checkoutValues.fullName,
+        streetLine1: checkoutValues.streetLine1,
+        city: checkoutValues.city,
+        province: checkoutValues.province,
+        postalCode: checkoutValues.postalCode,
+        countryCode: checkoutValues.countryCode,
+        phoneNumber: checkoutValues.phoneNumber || undefined,
       }
 
       const customerData = await vendureFetch<{setCustomerForOrder: Record<string, unknown>}>(SET_CUSTOMER_MUTATION, {input: customerInput})
@@ -1234,44 +1244,44 @@ export default function App() {
                 <div className="field-grid two-up">
                   <label>
                     <span>First name</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, firstName: event.target.value, fullName: `${event.target.value} ${current.lastName}`.trim()}))} required value={checkoutForm.firstName} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, firstName: event.target.value, fullName: `${event.target.value} ${checkoutValues.lastName}`.trim()}))} required value={checkoutValues.firstName} />
                   </label>
                   <label>
                     <span>Last name</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, lastName: event.target.value, fullName: `${current.firstName} ${event.target.value}`.trim()}))} required value={checkoutForm.lastName} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, lastName: event.target.value, fullName: `${checkoutValues.firstName} ${event.target.value}`.trim()}))} required value={checkoutValues.lastName} />
                   </label>
                 </div>
                 <div className="field-grid two-up">
                   <label>
                     <span>Email</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, emailAddress: event.target.value}))} required type="email" value={checkoutForm.emailAddress} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, emailAddress: event.target.value}))} required type="email" value={checkoutValues.emailAddress} />
                   </label>
                   <label>
                     <span>Phone</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, phoneNumber: event.target.value}))} value={checkoutForm.phoneNumber} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, phoneNumber: event.target.value}))} value={checkoutValues.phoneNumber} />
                   </label>
                 </div>
                 <label>
                   <span>Street address</span>
-                  <input onChange={(event) => setCheckoutForm((current) => ({...current, streetLine1: event.target.value}))} required value={checkoutForm.streetLine1} />
+                  <input onChange={(event) => setCheckoutForm((current) => ({...current, streetLine1: event.target.value}))} required value={checkoutValues.streetLine1} />
                 </label>
                 <div className="field-grid three-up">
                   <label>
                     <span>City</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, city: event.target.value}))} required value={checkoutForm.city} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, city: event.target.value}))} required value={checkoutValues.city} />
                   </label>
                   <label>
                     <span>State</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, province: event.target.value}))} required value={checkoutForm.province} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, province: event.target.value}))} required value={checkoutValues.province} />
                   </label>
                   <label>
                     <span>ZIP</span>
-                    <input onChange={(event) => setCheckoutForm((current) => ({...current, postalCode: event.target.value}))} required value={checkoutForm.postalCode} />
+                    <input onChange={(event) => setCheckoutForm((current) => ({...current, postalCode: event.target.value}))} required value={checkoutValues.postalCode} />
                   </label>
                 </div>
                 <label>
                   <span>Country</span>
-                  <select onChange={(event) => setCheckoutForm((current) => ({...current, countryCode: event.target.value}))} value={checkoutForm.countryCode}>
+                  <select onChange={(event) => setCheckoutForm((current) => ({...current, countryCode: event.target.value}))} value={checkoutValues.countryCode}>
                     {countries.map((country) => (
                       <option key={country.id} value={country.code}>
                         {country.name}

@@ -6,59 +6,89 @@
     <title>Defend Freedom | Immersive 360 Fire Training</title>
     <meta
       name="description"
-      content="Browser-first immersive 360 fire training prototype designed to evolve toward Meta Quest 3 delivery."
+      content="Immersive 360 fire-training prototype with welcome, briefing, strategy selection, and sequential Bravo-to-interior scene flow."
     />
   </head>
   <body>
-    <div id="app" class="immersive-app">
+    <div id="app" class="immersive-app" data-phase="welcome">
       <aside class="hud-panel">
         <p class="eyebrow">Open-source immersive prototype</p>
-        <h1>Single-family fire decision trainer</h1>
+        <h1>Single-family garage fire trainer</h1>
         <p class="lede">
-          This MVP uses real 2:1 equirectangular panoramas, scene hotspots, and decision checkpoints so
-          firefighters can size up conditions before you take this into a Quest 3 headset.
+          A browser-first 360 decision trainer aimed at firefighter size-up, strategy declaration, and
+          eventual Meta Quest 3 delivery.
         </p>
 
-        <div class="panel-card">
-          <h2>Scenario briefing</h2>
-          <p id="scene-summary">Loading scene…</p>
-          <div class="button-row" id="scene-buttons"></div>
-        </div>
+        <section class="panel-card">
+          <h2>Flow</h2>
+          <ol class="timeline" id="timeline">
+            <li data-step="welcome">Welcome</li>
+            <li data-step="briefing">Briefing</li>
+            <li data-step="strategy">Declare strategy</li>
+            <li data-step="scene">Bravo → doorway → interior</li>
+          </ol>
+        </section>
 
-        <div class="panel-card">
-          <h2>Decision checkpoint</h2>
-          <p id="decision-question">Loading checkpoint…</p>
-          <div id="decision-options" class="decision-options"></div>
-          <div id="decision-feedback" class="decision-feedback" aria-live="polite"></div>
-        </div>
+        <section class="panel-card">
+          <h2 id="phase-title">Welcome screen</h2>
+          <p id="phase-copy">
+            Launch the scenario, watch the initial garage-fire brief, then commit to offensive or defensive
+            strategy before you move through the structure.
+          </p>
+          <div class="button-row" id="primary-actions"></div>
+        </section>
 
-        <div class="panel-card">
-          <h2>Briefing clip</h2>
-          <p>
-            Flat video is still useful as pre-brief context, but the main training surface below is a 360
-            environment with clickable transitions.
+        <section class="panel-card" id="briefing-card">
+          <h2>Initial garage-fire brief</h2>
+          <p id="briefing-instruction">
+            Start the scenario to view the brief. When the clip finishes, the strategy gate unlocks.
           </p>
           <video
             id="briefing-video"
             controls
             playsinline
             preload="metadata"
-            src="/training-assets/360/single-family/briefing-fire.mp4"
+            src="/training-assets/360/single-family/garage-fire-briefing.mp4"
           ></video>
-        </div>
+        </section>
 
-        <div class="panel-card small-copy">
-          <h2>Quest-ready direction</h2>
-          <ul>
-            <li>Built on A-Frame/WebXR so the same experience can move toward Meta Quest 3.</li>
-            <li>Next step: add hand-controller UX, scoring, and Sanity-backed scenario records.</li>
-            <li>Hotspots in-scene act as the open-source ThingLink-style interaction layer.</li>
-          </ul>
-        </div>
+        <section class="panel-card" id="strategy-card" hidden>
+          <h2>Declare your strategy</h2>
+          <p>
+            The briefing is complete. Choose your intent before entering from the Bravo side.
+          </p>
+          <div class="decision-options" id="strategy-options"></div>
+          <div id="strategy-feedback" class="decision-feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="panel-card" id="scene-card" hidden>
+          <h2 id="scene-title">Bravo side size-up</h2>
+          <p id="scene-summary">Loading scene…</p>
+          <div class="button-row" id="scene-buttons"></div>
+        </section>
+
+        <section class="panel-card" id="checkpoint-card" hidden>
+          <h2>Decision checkpoint</h2>
+          <p id="decision-question">Loading checkpoint…</p>
+          <div id="decision-options" class="decision-options"></div>
+          <div id="decision-feedback" class="decision-feedback" aria-live="polite"></div>
+        </section>
       </aside>
 
       <main class="viewer-panel">
         <div class="viewer-frame">
+          <div class="welcome-overlay" id="welcome-overlay">
+            <div class="welcome-card">
+              <p class="eyebrow">Welcome</p>
+              <h2>Start the 360 decision run</h2>
+              <p>
+                You will begin in an immersive Bravo-side view, watch the garage-fire briefing, declare your
+                strategy, then advance to the doorway and interior.
+              </p>
+              <button class="button button-primary" id="start-button" type="button">Start scenario</button>
+            </div>
+          </div>
+
           <a-scene
             embedded
             background="color: #05070c"
@@ -68,13 +98,12 @@
             vr-mode-ui="enabled: true"
           >
             <a-assets>
-              <img id="alpha-side-panorama" src="/training-assets/360/single-family/alpha-side.png" alt="Alpha side panorama" />
-              <img id="front-door-panorama" src="/training-assets/360/single-family/front-door.png" alt="Front door panorama" />
-              <img id="entry-panorama" src="/training-assets/360/single-family/entry.png" alt="Entry panorama" />
+              <img id="bravo-panorama" src="/training-assets/360/single-family/bravo.jpg" alt="Bravo side panorama" />
+              <img id="doorway-panorama" src="/training-assets/360/single-family/doorway.jpg" alt="Front doorway panorama" />
+              <img id="interior-panorama" src="/training-assets/360/single-family/interior.jpg" alt="Interior panorama" />
             </a-assets>
 
-            <a-sky id="training-sky" src="#alpha-side-panorama" rotation="0 -90 0"></a-sky>
-
+            <a-sky id="training-sky" src="#bravo-panorama" rotation="0 -90 0"></a-sky>
             <a-entity id="hotspot-layer"></a-entity>
 
             <a-entity id="rig" position="0 1.6 0">
@@ -87,7 +116,6 @@
                   material="color: #f97316; shader: flat"
                 ></a-entity>
               </a-entity>
-
               <a-entity laser-controls="hand: left" raycaster="objects: .clickable"></a-entity>
               <a-entity laser-controls="hand: right" raycaster="objects: .clickable"></a-entity>
             </a-entity>

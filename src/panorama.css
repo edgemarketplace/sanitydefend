@@ -1,0 +1,102 @@
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  color: #f5f5f5;
+  background:
+    radial-gradient(circle at top, rgba(218, 37, 28, 0.35), transparent 32%),
+    linear-gradient(135deg, #070b16 0%, #121b30 52%, #05070c 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.panorama-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.panorama-copy,
+.panorama-stage {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.5rem;
+  background: rgba(7, 11, 22, 0.72);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.panorama-copy {
+  padding: 2rem;
+  align-self: start;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  line-height: 0.98;
+}
+
+p,
+li {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.feature-list {
+  margin: 1.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.feature-list li + li {
+  margin-top: 0.7rem;
+}
+
+.panorama-stage {
+  padding: 1rem;
+  min-height: min(78vh, 52rem);
+}
+
+#viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 70vh;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.psv-navbar {
+  border-radius: 0 0 1rem 1rem;
+}
+
+@media (max-width: 980px) {
+  .panorama-page {
+    grid-template-columns: 1fr;
+  }
+
+  .panorama-stage {
+    min-height: 60vh;
+  }
+
+  #viewer {
+    min-height: 55vh;
+  }
+}

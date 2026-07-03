@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@photo-sphere-viewer/core": "^5.14.3",
+    "@photo-sphere-viewer/markers-plugin": "^5.14.3",
+    "@photo-sphere-viewer/virtual-tour-plugin": "^5.14.3",
+    "aframe": "^1.8.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
+        immersiveTraining: resolve(__dirname, 'immersive-training.html'),
         main: resolve(__dirname, 'index.html'),
         fireTraining: resolve(__dirname, 'fire-training.html'),
         panorama: resolve(__dirname, 'panorama.html'),

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defend Freedom | Immersive 360 Fire Training</title>
+    <meta
+      name="description"
+      content="Browser-first immersive 360 fire training prototype designed to evolve toward Meta Quest 3 delivery."
+    />
+  </head>
+  <body>
+    <div id="app" class="immersive-app">
+      <aside class="hud-panel">
+        <p class="eyebrow">Open-source immersive prototype</p>
+        <h1>Single-family fire decision trainer</h1>
+        <p class="lede">
+          This MVP uses real 2:1 equirectangular panoramas, scene hotspots, and decision checkpoints so
+          firefighters can size up conditions before you take this into a Quest 3 headset.
+        </p>
+
+        <div class="panel-card">
+          <h2>Scenario briefing</h2>
+          <p id="scene-summary">Loading scene…</p>
+          <div class="button-row" id="scene-buttons"></div>
+        </div>
+
+        <div class="panel-card">
+          <h2>Decision checkpoint</h2>
+          <p id="decision-question">Loading checkpoint…</p>
+          <div id="decision-options" class="decision-options"></div>
+          <div id="decision-feedback" class="decision-feedback" aria-live="polite"></div>
+        </div>
+
+        <div class="panel-card">
+          <h2>Briefing clip</h2>
+          <p>
+            Flat video is still useful as pre-brief context, but the main training surface below is a 360
+            environment with clickable transitions.
+          </p>
+          <video
+            id="briefing-video"
+            controls
+            playsinline
+            preload="metadata"
+            src="/training-assets/360/single-family/briefing-fire.mp4"
+          ></video>
+        </div>
+
+        <div class="panel-card small-copy">
+          <h2>Quest-ready direction</h2>
+          <ul>
+            <li>Built on A-Frame/WebXR so the same experience can move toward Meta Quest 3.</li>
+            <li>Next step: add hand-controller UX, scoring, and Sanity-backed scenario records.</li>
+            <li>Hotspots in-scene act as the open-source ThingLink-style interaction layer.</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="viewer-panel">
+        <div class="viewer-frame">
+          <a-scene
+            embedded
+            background="color: #05070c"
+            device-orientation-permission-ui="enabled: false"
+            loading-screen="dotsColor: #f97316; backgroundColor: #05070c"
+            renderer="colorManagement: true"
+            vr-mode-ui="enabled: true"
+          >
+            <a-assets>
+              <img id="alpha-side-panorama" src="/training-assets/360/single-family/alpha-side.png" alt="Alpha side panorama" />
+              <img id="front-door-panorama" src="/training-assets/360/single-family/front-door.png" alt="Front door panorama" />
+              <img id="entry-panorama" src="/training-assets/360/single-family/entry.png" alt="Entry panorama" />
+            </a-assets>
+
+            <a-sky id="training-sky" src="#alpha-side-panorama" rotation="0 -90 0"></a-sky>
+
+            <a-entity id="hotspot-layer"></a-entity>
+
+            <a-entity id="rig" position="0 1.6 0">
+              <a-entity camera look-controls wasd-controls-enabled="false">
+                <a-entity
+                  cursor="rayOrigin: mouse; fuse: false"
+                  raycaster="objects: .clickable"
+                  position="0 0 -1"
+                  geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"
+                  material="color: #f97316; shader: flat"
+                ></a-entity>
+              </a-entity>
+
+              <a-entity laser-controls="hand: left" raycaster="objects: .clickable"></a-entity>
+              <a-entity laser-controls="hand: right" raycaster="objects: .clickable"></a-entity>
+            </a-entity>
+          </a-scene>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="/src/immersive-training.js"></script>
+  </body>
+</html>

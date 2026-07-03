@@ -131,12 +131,24 @@ const sceneSummary = document.querySelector('#scene-summary')
 const decisionQuestion = document.querySelector('#decision-question')
 const decisionOptions = document.querySelector('#decision-options')
 const decisionFeedback = document.querySelector('#decision-feedback')
+const sceneEl = document.querySelector('a-scene')
 
-if (!sky || !hotspotLayer || !sceneButtons || !sceneSummary || !decisionQuestion || !decisionOptions || !decisionFeedback) {
+if (!sky || !hotspotLayer || !sceneButtons || !sceneSummary || !decisionQuestion || !decisionOptions || !decisionFeedback || !sceneEl) {
   throw new Error('Immersive training page failed to initialize')
 }
 
 let currentSceneId = 'alpha'
+
+function syncSceneViewport() {
+  const targetHeight = window.innerWidth <= 1080 ? Math.max(window.innerHeight * 0.68, 420) : Math.max(window.innerHeight - 72, 640)
+
+  sceneEl.style.width = '100%'
+  sceneEl.style.height = `${Math.round(targetHeight)}px`
+
+  if (typeof sceneEl.resize === 'function') {
+    sceneEl.resize()
+  }
+}
 
 function setFeedback(message) {
   decisionFeedback.textContent = message
@@ -216,3 +228,5 @@ function renderScene(sceneId) {
 }
 
 renderScene(currentSceneId)
+syncSceneViewport()
+window.addEventListener('resize', syncSceneViewport)

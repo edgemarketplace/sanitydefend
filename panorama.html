@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defend Freedom | 360 Panorama Demo</title>
+    <meta
+      name="description"
+      content="Photo Sphere Viewer deployment demo with a configurable 360 panorama experience."
+    />
+  </head>
+  <body>
+    <div id="app">
+      <main class="panorama-page">
+        <section class="panorama-copy">
+          <p class="eyebrow">360 Demo</p>
+          <h1>Photo Sphere Viewer deploy test</h1>
+          <p>
+            This standalone page validates a deployable Photo Sphere Viewer setup using the core
+            configuration options from the official guide.
+          </p>
+          <ul class="feature-list">
+            <li>Remote equirectangular panorama source</li>
+            <li>Configured caption, description, yaw, pitch, and zoom</li>
+            <li>Custom navbar with zoom, move, description, caption, and fullscreen controls</li>
+          </ul>
+        </section>
+        <section class="panorama-stage">
+          <div id="viewer"></div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/panorama.ts"></script>
+  </body>
+</html>

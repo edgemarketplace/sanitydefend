@@ -126,9 +126,10 @@ const startButton = document.querySelector('#start-button')
 const phaseTitle = document.querySelector('#phase-title')
 const phaseCopy = document.querySelector('#phase-copy')
 const primaryActions = document.querySelector('#primary-actions')
-const briefingCard = document.querySelector('#briefing-card')
 const briefingInstruction = document.querySelector('#briefing-instruction')
+const briefingStatus = document.querySelector('#briefing-status')
 const briefingVideo = document.querySelector('#briefing-video')
+const briefingSphere = document.querySelector('#briefing-sphere')
 const strategyCard = document.querySelector('#strategy-card')
 const strategyOptions = document.querySelector('#strategy-options')
 const strategyFeedback = document.querySelector('#strategy-feedback')
@@ -152,9 +153,10 @@ if (
   !phaseTitle ||
   !phaseCopy ||
   !primaryActions ||
-  !briefingCard ||
   !briefingInstruction ||
+  !briefingStatus ||
   !briefingVideo ||
+  !briefingSphere ||
   !strategyCard ||
   !strategyOptions ||
   !strategyFeedback ||
@@ -189,6 +191,10 @@ function setStrategyFeedback(message) {
   strategyFeedback.textContent = message
 }
 
+function setBriefingStatus(message) {
+  briefingStatus.textContent = message
+}
+
 function syncSceneViewport() {
   const targetHeight = window.innerWidth <= 1080 ? Math.max(window.innerHeight * 0.68, 420) : Math.max(window.innerHeight - 72, 640)
 
@@ -209,6 +215,16 @@ function updateTimeline() {
     item.classList.toggle('is-active', itemRank === currentRank)
     item.classList.toggle('is-complete', itemRank < currentRank)
   })
+}
+
+function showBriefingSphere() {
+  sky.setAttribute('visible', 'false')
+  briefingSphere.setAttribute('visible', 'true')
+}
+
+function showSceneSky() {
+  briefingSphere.setAttribute('visible', 'false')
+  sky.setAttribute('visible', 'true')
 }
 
 function setPhase(phase) {
@@ -319,6 +335,7 @@ function renderSceneButtons() {
 function renderScene() {
   const scene = getScene()
 
+  showSceneSky()
   sky.setAttribute('src', scene.sky)
   sky.setAttribute('rotation', scene.skyRotation)
   sceneTitle.textContent = scene.name
@@ -341,13 +358,13 @@ function renderPrimaryActions() {
     button.addEventListener('click', startScenario)
     primaryActions.appendChild(button)
     phaseTitle.textContent = 'Welcome screen'
-    phaseCopy.textContent = 'Start the run, watch the garage-fire briefing, then commit to offensive or defensive strategy before entry.'
+    phaseCopy.textContent = 'Start the run, then watch the garage-fire briefing inside the immersive sphere before strategy selection unlocks.'
     return
   }
 
   if (state.phase === 'briefing') {
-    phaseTitle.textContent = 'Watch the briefing'
-    phaseCopy.textContent = 'The 360 scene is live behind the controls. Finish the initial garage-fire video to unlock the strategy decision.'
+    phaseTitle.textContent = 'Watch the immersive briefing'
+    phaseCopy.textContent = 'The initial garage-fire video is now playing on the 360 sphere, not in a flat side panel. Look around the scene and wait for the strategy gate.'
     return
   }
 
@@ -391,22 +408,36 @@ function startScenario() {
   state.currentSceneId = 'bravo'
   renderScene()
   setPhase('briefing')
-  briefingInstruction.textContent = 'Watch the initial garage-fire brief. Strategy selection unlocks automatically when the clip ends.'
+  showBriefingSphere()
+  briefingInstruction.textContent = 'The garage-fire briefing is playing inside the immersive viewer. Strategy selection unlocks automatically when it finishes.'
+  setBriefingStatus('Immersive briefing loading… if playback stalls, tap once in the viewer and it will continue.')
   setStrategyFeedback('Awaiting video completion…')
+  briefingVideo.pause()
   briefingVideo.currentTime = 0
+  briefingVideo.load()
   const playAttempt = briefingVideo.play()
   if (playAttempt?.catch) {
     playAttempt.catch(() => {
-      briefingInstruction.textContent = 'Press play on the garage-fire brief. When it finishes, the strategy gate will unlock.'
+      setBriefingStatus('Tap the viewer or press Start again if your browser blocked autoplay. The briefing is now mapped onto the full 360 sphere.')
     })
   }
 }
 
 function handleBriefingComplete() {
   if (state.phase !== 'briefing') return
+  showSceneSky()
+  renderScene()
   setPhase('strategy')
   briefingInstruction.textContent = 'Briefing complete. Declare offensive or defensive strategy to enter the Bravo-side scenario.'
+  setBriefingStatus('Immersive briefing complete. Strategy selection is now unlocked.')
   setStrategyFeedback('Choose a strategy to enter BRAVO.')
+}
+
+function handleBriefingProgress() {
+  if (state.phase !== 'briefing' || !Number.isFinite(briefingVideo.duration) || briefingVideo.duration <= 0) return
+
+  const remaining = Math.max(0, briefingVideo.duration - briefingVideo.currentTime)
+  setBriefingStatus(`Immersive briefing playing inside the sphere. ${remaining.toFixed(1)}s remaining before strategy selection unlocks.`)
 }
 
 function resetScenario() {
@@ -416,6 +447,9 @@ function resetScenario() {
   state.furthestSceneIndex = 0
   briefingVideo.pause()
   briefingVideo.currentTime = 0
+  showSceneSky()
+  setBriefingStatus('The garage-fire brief will play inside the immersive viewer when you start the scenario.')
+  briefingInstruction.textContent = 'Start the scenario to view the brief. When the clip finishes, the strategy gate unlocks.'
   setStrategyFeedback('Awaiting video completion…')
   setDecisionFeedback('Choose a decision response or use the orange hotspots inside the panorama to keep moving.')
   renderScene()
@@ -424,6 +458,7 @@ function resetScenario() {
 
 renderStrategyOptions()
 renderScene()
+setBriefingStatus('The garage-fire brief will play inside the immersive viewer when you start the scenario.')
 setStrategyFeedback('Awaiting video completion…')
 setDecisionFeedback('Choose a decision response or use the orange hotspots inside the panorama to keep moving.')
 setPhase('welcome')
@@ -431,4 +466,5 @@ syncSceneViewport()
 
 startButton.addEventListener('click', startScenario)
 briefingVideo.addEventListener('ended', handleBriefingComplete)
+briefingVideo.addEventListener('timeupdate', handleBriefingProgress)
 window.addEventListener('resize', syncSceneViewport)

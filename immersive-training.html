@@ -43,13 +43,9 @@
           <p id="briefing-instruction">
             Start the scenario to view the brief. When the clip finishes, the strategy gate unlocks.
           </p>
-          <video
-            id="briefing-video"
-            controls
-            playsinline
-            preload="metadata"
-            src="/training-assets/360/single-family/garage-fire-briefing.mp4"
-          ></video>
+          <div class="briefing-status" id="briefing-status">
+            The garage-fire brief now plays inside the immersive viewer. When it ends, strategy selection unlocks automatically.
+          </div>
         </section>
 
         <section class="panel-card" id="strategy-card" hidden>
@@ -101,9 +97,18 @@
               <img id="bravo-panorama" src="/training-assets/360/single-family/bravo.jpg" alt="Bravo side panorama" />
               <img id="doorway-panorama" src="/training-assets/360/single-family/doorway.jpg" alt="Front doorway panorama" />
               <img id="interior-panorama" src="/training-assets/360/single-family/interior.jpg" alt="Interior panorama" />
+              <video
+                id="briefing-video"
+                crossorigin="anonymous"
+                playsinline
+                webkit-playsinline
+                preload="auto"
+                src="/training-assets/360/single-family/garage-fire-briefing.mp4"
+              ></video>
             </a-assets>
 
             <a-sky id="training-sky" src="#bravo-panorama" rotation="0 -90 0"></a-sky>
+            <a-videosphere id="briefing-sphere" src="#briefing-video" rotation="0 -90 0" visible="false"></a-videosphere>
             <a-entity id="hotspot-layer"></a-entity>
 
             <a-entity id="rig" position="0 1.6 0">
